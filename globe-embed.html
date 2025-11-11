@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Project Globe</title>
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: #f7f5ff;
+      color: #2d1e4f;
+    }
+
+    .globe-wrapper {
+      position: relative;
+      width: min(90vw, 720px);
+      aspect-ratio: 1/1;
+      margin: 40px auto;
+      border-radius: 24px;
+      background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f0e9ff 60%, #e3dbff 100%);
+      box-shadow: 0 30px 60px rgba(62, 41, 120, 0.18);
+      overflow: hidden;
+    }
+
+    #globe {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .project-popup {
+      position: absolute;
+      min-width: 220px;
+      max-width: 280px;
+      padding: 16px 18px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(70, 38, 125, 0.24);
+      transform: translate(-50%, -110%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      border: 1px solid rgba(106, 62, 180, 0.12);
+    }
+
+    .project-popup.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .project-popup h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .project-popup p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .project-popup .meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #8159d5;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .project-popup .meta svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .globe-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 70% 80%, rgba(255, 175, 64, 0.16), transparent 65%);
+      mix-blend-mode: multiply;
+    }
+
+    .attribution {
+      text-align: center;
+      font-size: 12px;
+      color: #6c5a9f;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .globe-wrapper {
+        width: min(95vw, 420px);
+        margin: 24px auto;
+      }
+
+      .project-popup {
+        min-width: 180px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="globe-wrapper">
+    <canvas id="globe"></canvas>
+    <div class="project-popup" id="projectPopup">
+      <div class="meta">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21s-6-5.686-6-10.8S7.79 3 12 3s6 2.7 6 7.2S12 21 12 21z" />
+          <circle cx="12" cy="10" r="1.8" />
+        </svg>
+        <span id="popupLocation">Location</span>
+      </div>
+      <h3 id="popupTitle">Project title</h3>
+      <p id="popupDescription">Description text.</p>
+    </div>
+    <div class="globe-overlay"></div>
+  </div>
+  <p class="attribution">Drag to explore • Scroll to zoom</p>
+
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+    const canvas = document.getElementById('globe');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    scene.background = null;
+
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    camera.position.set(0, 0, 4.2);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.enablePan = false;
+    controls.minDistance = 2.8;
+    controls.maxDistance = 6;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.7;
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffc278, 1.1);
+    directionalLight.position.set(-5, 3, 5);
+    scene.add(directionalLight);
+
+    // Base globe made of dots
+    const radius = 1.6;
+    const sphereGeometry = new THREE.SphereGeometry(radius, 72, 36);
+    const dotMaterial = new THREE.PointsMaterial({
+      color: new THREE.Color('#ee9134'),
+      size: 0.025,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const globeDots = new THREE.Points(sphereGeometry, dotMaterial);
+    scene.add(globeDots);
+
+    // Glow halo
+    const haloGeometry = new THREE.SphereGeometry(radius * 1.04, 48, 24);
+    const haloMaterial = new THREE.MeshBasicMaterial({
+      color: '#f6d084',
+      transparent: true,
+      opacity: 0.18,
+      side: THREE.BackSide,
+    });
+    const halo = new THREE.Mesh(haloGeometry, haloMaterial);
+    scene.add(halo);
+
+    const projectData = [
+      {
+        name: 'London Mobility Hub',
+        location: 'London, United Kingdom',
+        description: 'Daily EV charging analytics platform serving 1.7M sessions.',
+        latitude: 51.5072,
+        longitude: -0.1276,
+        color: '#ff4f81',
+      },
+      {
+        name: 'Solar Plains Initiative',
+        location: 'Marseille, France',
+        description: 'Grid-tied solar farms with predictive maintenance insights.',
+        latitude: 43.2965,
+        longitude: 5.3698,
+        color: '#fcbf49',
+      },
+      {
+        name: 'Nordic Wave Sensors',
+        location: 'Reykjavík, Iceland',
+        description: 'Offshore wave monitoring for microgrid balancing.',
+        latitude: 64.1466,
+        longitude: -21.9426,
+        color: '#3ddad7',
+      },
+    ];
+
+    const projectGroup = new THREE.Group();
+    scene.add(projectGroup);
+
+    const markerMeshes = [];
+
+    function latLongToVector3(lat, lon, r) {
+      const phi = (90 - lat) * (Math.PI / 180);
+      const theta = (lon + 180) * (Math.PI / 180);
+      const x = -r * Math.sin(phi) * Math.cos(theta);
+      const z = r * Math.sin(phi) * Math.sin(theta);
+      const y = r * Math.cos(phi);
+      return new THREE.Vector3(x, y, z);
+    }
+
+    const markerGeometry = new THREE.SphereGeometry(0.045, 16, 16);
+
+    projectData.forEach((project) => {
+      const markerMaterial = new THREE.MeshStandardMaterial({
+        color: project.color,
+        emissive: new THREE.Color(project.color).multiplyScalar(0.4),
+        roughness: 0.3,
+        metalness: 0.1,
+      });
+
+      const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+      const position = latLongToVector3(project.latitude, project.longitude, radius * 1.01);
+      marker.position.copy(position);
+      marker.userData = project;
+
+      const pulseGeometry = new THREE.RingGeometry(0.07, 0.1, 48);
+      const pulseMaterial = new THREE.MeshBasicMaterial({
+        color: project.color,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+      });
+      const pulse = new THREE.Mesh(pulseGeometry, pulseMaterial);
+      pulse.rotation.x = Math.PI / 2;
+      pulse.position.copy(position.clone().multiplyScalar(1.02));
+      pulse.userData = { marker };
+
+      const markerGroup = new THREE.Group();
+      markerGroup.add(marker);
+      markerGroup.add(pulse);
+
+      projectGroup.add(markerGroup);
+      markerMeshes.push(marker);
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let intersectedMarker = null;
+
+    function updatePopup(marker, event) {
+      const popup = document.getElementById('projectPopup');
+      const { name, description, location } = marker.userData;
+      document.getElementById('popupTitle').textContent = name;
+      document.getElementById('popupDescription').textContent = description;
+      document.getElementById('popupLocation').textContent = location;
+
+      const vector = marker.position.clone();
+      vector.project(camera);
+      const rect = renderer.domElement.getBoundingClientRect();
+      const x = ((vector.x + 1) / 2) * rect.width;
+      const y = ((-vector.y + 1) / 2) * rect.height;
+
+      popup.style.left = `${x}px`;
+      popup.style.top = `${y}px`;
+      popup.classList.add('visible');
+    }
+
+    function hidePopup() {
+      const popup = document.getElementById('projectPopup');
+      popup.classList.remove('visible');
+    }
+
+    function handlePointerMove(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(markerMeshes, false);
+
+      if (intersects.length > 0) {
+        const marker = intersects[0].object;
+        renderer.domElement.style.cursor = 'pointer';
+        intersectedMarker = marker;
+      } else {
+        renderer.domElement.style.cursor = 'grab';
+        intersectedMarker = null;
+      }
+    }
+
+    function handleClick(event) {
+      if (!intersectedMarker) {
+        hidePopup();
+        return;
+      }
+      updatePopup(intersectedMarker, event);
+    }
+
+    renderer.domElement.addEventListener('pointermove', handlePointerMove);
+    renderer.domElement.addEventListener('click', handleClick);
+    renderer.domElement.addEventListener('mousedown', () => {
+      renderer.domElement.style.cursor = 'grabbing';
+    });
+    renderer.domElement.addEventListener('mouseup', () => {
+      renderer.domElement.style.cursor = intersectedMarker ? 'pointer' : 'grab';
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      projectGroup.children.forEach((group, index) => {
+        const pulse = group.children[1];
+        pulse.material.opacity = 0.4 + Math.sin(Date.now() * 0.002 + index) * 0.2;
+        pulse.scale.setScalar(1 + Math.sin(Date.now() * 0.0015 + index) * 0.08);
+      });
+      renderer.render(scene, camera);
+    }
+
+    function onResize() {
+      const { clientWidth, clientHeight } = renderer.domElement.parentElement;
+      renderer.setSize(clientWidth, clientHeight, false);
+      camera.aspect = clientWidth / clientHeight;
+      camera.updateProjectionMatrix();
+    }
+
+    window.addEventListener('resize', onResize);
+    onResize();
+    animate();
+  </script>
+</body>
+</html>
