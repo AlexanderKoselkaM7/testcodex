@@ -7,6 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { M7_COLORS, DotPattern } from "./M7Styles";
 
 const clients = [
   "client-trivago.svg",
@@ -16,93 +17,77 @@ const clients = [
   "client-hylofit.svg",
 ];
 
-const ClientLogo: React.FC<{ logo: string; index: number }> = ({ logo, index }) => {
+export const M7Clients: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const delay = index * 8;
-
-  const logoScale = spring({
-    frame: frame - delay,
-    fps,
-    config: { damping: 15, stiffness: 100 },
-  });
-
-  const logoOpacity = interpolate(frame - delay, [0, 20], [0, 1], {
-    extrapolateLeft: "clamp",
+  const titleOpacity = interpolate(frame, [0, 15], [0, 1], {
     extrapolateRight: "clamp",
   });
 
-  const float = Math.sin((frame + index * 20) * 0.05) * 8;
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: 280,
-        height: 120,
-        backgroundColor: "rgba(255, 255, 255, 0.03)",
-        borderRadius: 16,
-        border: "1px solid rgba(255, 255, 255, 0.08)",
-        transform: `scale(${Math.max(logoScale, 0)}) translateY(${float}px)`,
-        opacity: logoOpacity,
-      }}
-    >
-      <Img
-        src={staticFile(`projects/m7/images/${logo}`)}
-        style={{
-          maxWidth: 180,
-          maxHeight: 60,
-          filter: "brightness(0) invert(1)",
-          opacity: 0.7,
-        }}
-      />
-    </div>
-  );
-};
-
-export const M7Clients: React.FC = () => {
-  const frame = useCurrentFrame();
-
-  const titleOpacity = interpolate(frame, [0, 20], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-
-  const titleY = interpolate(frame, [0, 20], [30, 0], {
-    extrapolateRight: "clamp",
-  });
-
-  // Counter animation
+  // Counter animation - fast count up
   const counterValue = Math.floor(
-    interpolate(frame, [20, 60], [0, 50], {
+    interpolate(frame, [10, 40], [0, 50], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
     })
   );
 
+  // Staggered logo animations
+  const getLogoAnimation = (index: number) => {
+    const delay = 25 + index * 8;
+    const scale = spring({
+      frame: frame - delay,
+      fps,
+      config: { damping: 12, stiffness: 150 },
+    });
+    const opacity = interpolate(frame - delay, [0, 10], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
+    return { scale: Math.max(scale, 0), opacity };
+  };
+
   return (
     <AbsoluteFill
       style={{
-        background: "linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%)",
+        backgroundColor: M7_COLORS.black,
+        display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        padding: 80,
+        padding: 100,
       }}
     >
-      {/* Background glow */}
-      <div
-        style={{
-          position: "absolute",
-          width: 600,
-          height: 600,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255, 107, 107, 0.08) 0%, transparent 60%)",
-          filter: "blur(80px)",
-        }}
-      />
+      {/* Dot pattern - left */}
+      <div style={{ position: "absolute", left: 60, top: "50%", transform: "translateY(-50%)" }}>
+        <DotPattern
+          rows={15}
+          cols={6}
+          dotSize={4}
+          gap={10}
+          color={M7_COLORS.gray}
+          animate={true}
+          direction="down"
+          staggerDelay={0.3}
+        />
+      </div>
 
+      {/* Dot pattern - right */}
+      <div style={{ position: "absolute", right: 60, top: "50%", transform: "translateY(-50%)" }}>
+        <DotPattern
+          rows={15}
+          cols={6}
+          dotSize={4}
+          gap={10}
+          color={M7_COLORS.gray}
+          animate={true}
+          direction="up"
+          staggerDelay={0.3}
+        />
+      </div>
+
+      {/* Main content */}
       <div
         style={{
           display: "flex",
@@ -112,51 +97,97 @@ export const M7Clients: React.FC = () => {
           zIndex: 10,
         }}
       >
-        {/* Section title */}
+        {/* Title section */}
         <div
           style={{
             textAlign: "center",
             opacity: titleOpacity,
-            transform: `translateY(${titleY}px)`,
           }}
         >
-          <h2
+          <span
             style={{
-              fontSize: 56,
+              fontSize: 14,
+              color: M7_COLORS.orange,
+              fontFamily: "system-ui, -apple-system, sans-serif",
               fontWeight: 700,
-              color: "white",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              margin: 0,
+              letterSpacing: 3,
             }}
           >
-            Trusted By
-          </h2>
-          <p
+            TRUSTED BY
+          </span>
+
+          {/* Big counter number */}
+          <div
             style={{
-              fontSize: 72,
-              fontWeight: 800,
-              color: "#ff6b6b",
+              fontSize: 180,
+              fontWeight: 900,
+              color: M7_COLORS.white,
               fontFamily: "system-ui, -apple-system, sans-serif",
-              margin: "16px 0 0 0",
+              lineHeight: 1,
+              marginTop: 10,
             }}
           >
-            {counterValue}+ Brands
-          </p>
+            {counterValue}
+            <span style={{ color: M7_COLORS.orange }}>+</span>
+          </div>
+
+          <span
+            style={{
+              fontSize: 32,
+              color: M7_COLORS.lightGray,
+              fontFamily: "system-ui, -apple-system, sans-serif",
+              fontWeight: 600,
+              letterSpacing: 4,
+            }}
+          >
+            BRANDS WORLDWIDE
+          </span>
         </div>
 
-        {/* Client logos grid */}
+        {/* Orange bar */}
+        <div
+          style={{
+            width: 100,
+            height: 4,
+            backgroundColor: M7_COLORS.orange,
+          }}
+        />
+
+        {/* Client logos */}
         <div
           style={{
             display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: 30,
-            maxWidth: 1400,
+            gap: 50,
+            alignItems: "center",
           }}
         >
-          {clients.map((logo, i) => (
-            <ClientLogo key={logo} logo={logo} index={i} />
-          ))}
+          {clients.map((logo, i) => {
+            const { scale, opacity } = getLogoAnimation(i);
+            return (
+              <div
+                key={logo}
+                style={{
+                  width: 200,
+                  height: 80,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  opacity,
+                  transform: `scale(${scale})`,
+                }}
+              >
+                <Img
+                  src={staticFile(`projects/m7/images/${logo}`)}
+                  style={{
+                    maxWidth: 160,
+                    maxHeight: 50,
+                    filter: "brightness(0) invert(1)",
+                    opacity: 0.6,
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </AbsoluteFill>

@@ -7,6 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { M7_COLORS, DotPattern, AnimatedText } from "./M7Styles";
 
 export const M7Outro: React.FC = () => {
   const frame = useCurrentFrame();
@@ -16,77 +17,62 @@ export const M7Outro: React.FC = () => {
   const logoScale = spring({
     frame,
     fps,
-    config: { damping: 12, stiffness: 80 },
+    config: { damping: 15, stiffness: 150 },
   });
 
-  // Text animations
-  const titleOpacity = interpolate(frame, [10, 30], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-
-  const titleY = interpolate(frame, [10, 30], [40, 0], {
+  // CTA animation
+  const ctaOpacity = interpolate(frame, [30, 45], [0, 1], {
     extrapolateRight: "clamp",
   });
 
   const ctaScale = spring({
-    frame: frame - 25,
+    frame: frame - 30,
     fps,
-    config: { damping: 15, stiffness: 100 },
-  });
-
-  const ctaOpacity = interpolate(frame, [25, 40], [0, 1], {
-    extrapolateRight: "clamp",
+    config: { damping: 12, stiffness: 120 },
   });
 
   // Social icons
-  const socialOpacity = interpolate(frame, [40, 55], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-
-  const socials = ["facebook.svg", "linkedin.svg", "instagram.svg"];
+  const socials = [
+    { icon: "facebook.svg", delay: 40 },
+    { icon: "linkedin.svg", delay: 45 },
+    { icon: "instagram.svg", delay: 50 },
+  ];
 
   return (
     <AbsoluteFill
       style={{
-        background: "radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 100%)",
+        backgroundColor: M7_COLORS.black,
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      {/* Animated rings */}
-      {[0, 1, 2, 3].map((i) => {
-        const ringOpacity = 0.1 - i * 0.02;
-        const ringScale = interpolate(frame, [0, 70], [0.9, 1.1]);
+      {/* Dot patterns - corners */}
+      <div style={{ position: "absolute", left: 40, top: 40 }}>
+        <DotPattern
+          rows={6}
+          cols={10}
+          dotSize={4}
+          gap={10}
+          color={M7_COLORS.gray}
+          animate={true}
+          direction="diagonal"
+          staggerDelay={0.4}
+        />
+      </div>
+      <div style={{ position: "absolute", right: 40, bottom: 40 }}>
+        <DotPattern
+          rows={6}
+          cols={10}
+          dotSize={4}
+          gap={10}
+          color={M7_COLORS.gray}
+          animate={true}
+          direction="diagonal"
+          staggerDelay={0.4}
+        />
+      </div>
 
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              width: 300 + i * 150,
-              height: 300 + i * 150,
-              borderRadius: "50%",
-              border: `1px solid rgba(255, 107, 107, ${ringOpacity})`,
-              transform: `scale(${ringScale})`,
-            }}
-          />
-        );
-      })}
-
-      {/* Glow */}
-      <div
-        style={{
-          position: "absolute",
-          width: 500,
-          height: 500,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255, 107, 107, 0.15) 0%, transparent 60%)",
-          filter: "blur(60px)",
-          transform: `scale(${logoScale})`,
-        }}
-      />
-
-      {/* Content */}
+      {/* Main content */}
       <div
         style={{
           display: "flex",
@@ -96,42 +82,57 @@ export const M7Outro: React.FC = () => {
         }}
       >
         {/* Logo */}
-        <Img
-          src={staticFile("projects/m7/images/m7-logo.svg")}
+        <div
           style={{
-            width: 120,
             transform: `scale(${logoScale})`,
-            filter: "drop-shadow(0 15px 30px rgba(255, 107, 107, 0.3))",
+            marginBottom: 50,
+          }}
+        >
+          <Img
+            src={staticFile("projects/m7/images/m7-logo.svg")}
+            style={{
+              width: 160,
+              filter: "brightness(0) invert(1)",
+            }}
+          />
+        </div>
+
+        {/* Orange bar */}
+        <div
+          style={{
+            width: interpolate(frame, [10, 25], [0, 120], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
+            height: 4,
+            backgroundColor: M7_COLORS.orange,
+            marginBottom: 50,
           }}
         />
 
         {/* CTA Text */}
+        <AnimatedText
+          text="LET'S CREATE"
+          fontSize={72}
+          fontWeight={900}
+          color={M7_COLORS.white}
+          delay={15}
+          speed={2}
+          style={{ marginBottom: 8 }}
+        />
+        <AnimatedText
+          text="TOGETHER."
+          fontSize={72}
+          fontWeight={900}
+          color={M7_COLORS.orange}
+          delay={28}
+          speed={2}
+        />
+
+        {/* Website CTA button */}
         <div
           style={{
             marginTop: 50,
-            textAlign: "center",
-            opacity: titleOpacity,
-            transform: `translateY(${titleY}px)`,
-          }}
-        >
-          <h1
-            style={{
-              fontSize: 64,
-              fontWeight: 800,
-              color: "white",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              margin: 0,
-              letterSpacing: -1,
-            }}
-          >
-            Let's Create Together
-          </h1>
-        </div>
-
-        {/* Website button */}
-        <div
-          style={{
-            marginTop: 40,
             opacity: ctaOpacity,
             transform: `scale(${Math.max(ctaScale, 0)})`,
           }}
@@ -139,17 +140,15 @@ export const M7Outro: React.FC = () => {
           <div
             style={{
               padding: "18px 48px",
-              background: "linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)",
-              borderRadius: 40,
-              fontSize: 20,
+              backgroundColor: M7_COLORS.orange,
+              color: M7_COLORS.black,
+              fontSize: 18,
               fontWeight: 700,
-              color: "white",
               fontFamily: "system-ui, -apple-system, sans-serif",
-              letterSpacing: 1,
-              boxShadow: "0 15px 40px rgba(255, 107, 107, 0.4)",
+              letterSpacing: 2,
             }}
           >
-            m7branding.com
+            M7BRANDING.COM
           </div>
         </div>
 
@@ -157,29 +156,33 @@ export const M7Outro: React.FC = () => {
         <div
           style={{
             display: "flex",
-            gap: 24,
+            gap: 20,
             marginTop: 40,
-            opacity: socialOpacity,
           }}
         >
-          {socials.map((icon, i) => {
+          {socials.map(({ icon, delay }) => {
             const iconScale = spring({
-              frame: frame - 45 - i * 5,
+              frame: frame - delay,
               fps,
-              config: { damping: 12, stiffness: 100 },
+              config: { damping: 12, stiffness: 150 },
+            });
+
+            const iconOpacity = interpolate(frame - delay, [0, 10], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
             });
 
             return (
               <div
                 key={icon}
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  width: 50,
+                  height: 50,
+                  border: `2px solid ${M7_COLORS.gray}`,
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
+                  opacity: iconOpacity,
                   transform: `scale(${Math.max(iconScale, 0)})`,
                 }}
               >
@@ -195,6 +198,18 @@ export const M7Outro: React.FC = () => {
           })}
         </div>
       </div>
+
+      {/* Orange glow */}
+      <div
+        style={{
+          position: "absolute",
+          width: 600,
+          height: 600,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${M7_COLORS.orange}10 0%, transparent 60%)`,
+          filter: "blur(100px)",
+        }}
+      />
     </AbsoluteFill>
   );
 };

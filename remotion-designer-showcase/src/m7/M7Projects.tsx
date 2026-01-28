@@ -7,195 +7,240 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { M7_COLORS, DotPattern } from "./M7Styles";
 
 const projects = [
-  { image: "sparked-project.png", name: "Sparked", category: "Brand Identity" },
-  { image: "repairlab-project.png", name: "Repairlab", category: "Web Design" },
-  { image: "hylofit-project.png", name: "Hylofit", category: "Digital Strategy" },
+  { image: "sparked-project.png", name: "SPARKED", category: "Brand Identity" },
+  { image: "repairlab-project.png", name: "REPAIRLAB", category: "Web Design" },
+  { image: "hylofit-project.png", name: "HYLOFIT", category: "Digital Strategy" },
 ];
-
-const ProjectCard: React.FC<{
-  image: string;
-  name: string;
-  category: string;
-  index: number;
-}> = ({ image, name, category, index }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const delay = index * 15;
-
-  const cardScale = spring({
-    frame: frame - delay,
-    fps,
-    config: { damping: 12, stiffness: 80 },
-  });
-
-  const cardX = interpolate(frame - delay, [0, 30], [100, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  const labelOpacity = interpolate(frame - delay, [20, 40], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 20,
-        transform: `scale(${Math.max(cardScale, 0)}) translateX(${cardX}px)`,
-      }}
-    >
-      {/* Project image */}
-      <div
-        style={{
-          width: 480,
-          height: 320,
-          borderRadius: 20,
-          overflow: "hidden",
-          boxShadow: "0 30px 60px rgba(0, 0, 0, 0.4)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-        }}
-      >
-        <Img
-          src={staticFile(`projects/m7/images/${image}`)}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-        />
-      </div>
-
-      {/* Project info */}
-      <div style={{ opacity: labelOpacity }}>
-        <h3
-          style={{
-            fontSize: 24,
-            fontWeight: 700,
-            color: "white",
-            fontFamily: "system-ui, -apple-system, sans-serif",
-            margin: 0,
-          }}
-        >
-          {name}
-        </h3>
-        <p
-          style={{
-            fontSize: 16,
-            color: "rgba(255, 255, 255, 0.5)",
-            fontFamily: "system-ui, -apple-system, sans-serif",
-            margin: "8px 0 0 0",
-          }}
-        >
-          {category}
-        </p>
-      </div>
-    </div>
-  );
-};
 
 export const M7Projects: React.FC = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
 
-  const titleOpacity = interpolate(frame, [0, 20], [0, 1], {
+  const titleOpacity = interpolate(frame, [0, 15], [0, 1], {
     extrapolateRight: "clamp",
   });
 
-  const titleY = interpolate(frame, [0, 20], [30, 0], {
-    extrapolateRight: "clamp",
-  });
+  // Calculate which project to show (carousel effect)
+  const projectDuration = 35;
+  const currentProject = Math.min(
+    Math.floor(frame / projectDuration),
+    projects.length - 1
+  );
 
   return (
     <AbsoluteFill
       style={{
-        background: "linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%)",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 80,
+        backgroundColor: M7_COLORS.black,
+        overflow: "hidden",
       }}
     >
-      {/* Background accents */}
-      <div
-        style={{
-          position: "absolute",
-          width: 500,
-          height: 500,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(69, 183, 209, 0.1) 0%, transparent 60%)",
-          filter: "blur(80px)",
-          left: "10%",
-          top: "20%",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: 400,
-          height: 400,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255, 107, 107, 0.1) 0%, transparent 60%)",
-          filter: "blur(80px)",
-          right: "15%",
-          bottom: "20%",
-        }}
-      />
+      {/* Dot pattern - bottom right */}
+      <div style={{ position: "absolute", right: 60, bottom: 60 }}>
+        <DotPattern
+          rows={8}
+          cols={12}
+          dotSize={4}
+          gap={10}
+          color={M7_COLORS.gray}
+          animate={true}
+          direction="diagonal"
+          staggerDelay={0.3}
+        />
+      </div>
 
+      {/* Left side - Project info */}
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 60,
+          position: "absolute",
+          left: 100,
+          top: "50%",
+          transform: "translateY(-50%)",
           zIndex: 10,
+          maxWidth: 500,
         }}
       >
-        {/* Section title */}
-        <div
+        <span
           style={{
-            textAlign: "center",
+            fontSize: 14,
+            color: M7_COLORS.orange,
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            fontWeight: 700,
+            letterSpacing: 3,
             opacity: titleOpacity,
-            transform: `translateY(${titleY}px)`,
           }}
         >
-          <h2
-            style={{
-              fontSize: 56,
-              fontWeight: 700,
-              color: "white",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              margin: 0,
-            }}
-          >
-            Featured Work
-          </h2>
-          <p
-            style={{
-              fontSize: 20,
-              color: "rgba(255, 255, 255, 0.5)",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              marginTop: 16,
-            }}
-          >
-            Brands we've helped transform
-          </p>
-        </div>
+          FEATURED WORK
+        </span>
 
         {/* Project cards */}
-        <div
-          style={{
-            display: "flex",
-            gap: 40,
-          }}
-        >
-          {projects.map((project, i) => (
-            <ProjectCard key={project.name} {...project} index={i} />
-          ))}
-        </div>
+        {projects.map((project, i) => {
+          const isActive = i === currentProject;
+          const projectFrame = frame - i * projectDuration;
+
+          const opacity = isActive
+            ? interpolate(projectFrame, [0, 10, projectDuration - 5, projectDuration], [0, 1, 1, 0], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              })
+            : 0;
+
+          const slideY = isActive
+            ? interpolate(projectFrame, [0, 15], [50, 0], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              })
+            : 50;
+
+          return (
+            <div
+              key={project.name}
+              style={{
+                position: "absolute",
+                top: 40,
+                opacity,
+                transform: `translateY(${slideY}px)`,
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: 80,
+                  fontWeight: 900,
+                  color: M7_COLORS.white,
+                  fontFamily: "system-ui, -apple-system, sans-serif",
+                  margin: 0,
+                  lineHeight: 1,
+                }}
+              >
+                {project.name}
+              </h2>
+
+              <div
+                style={{
+                  width: 80,
+                  height: 4,
+                  backgroundColor: M7_COLORS.orange,
+                  marginTop: 30,
+                  marginBottom: 30,
+                }}
+              />
+
+              <p
+                style={{
+                  fontSize: 20,
+                  color: M7_COLORS.lightGray,
+                  fontFamily: "system-ui, -apple-system, sans-serif",
+                  fontWeight: 500,
+                  letterSpacing: 2,
+                }}
+              >
+                {project.category}
+              </p>
+
+              {/* Project number */}
+              <span
+                style={{
+                  fontSize: 120,
+                  fontWeight: 900,
+                  color: M7_COLORS.darkGray,
+                  fontFamily: "system-ui, -apple-system, sans-serif",
+                  position: "absolute",
+                  right: -150,
+                  top: -30,
+                  opacity: 0.3,
+                }}
+              >
+                0{i + 1}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Right side - Project images */}
+      <div
+        style={{
+          position: "absolute",
+          right: 80,
+          top: "50%",
+          transform: "translateY(-50%)",
+        }}
+      >
+        {projects.map((project, i) => {
+          const isActive = i === currentProject;
+          const projectFrame = frame - i * projectDuration;
+
+          const scale = isActive
+            ? spring({
+                frame: projectFrame,
+                fps,
+                config: { damping: 15, stiffness: 100 },
+              })
+            : 0;
+
+          const opacity = isActive
+            ? interpolate(projectFrame, [0, 10, projectDuration - 5, projectDuration], [0, 1, 1, 0], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              })
+            : 0;
+
+          return (
+            <div
+              key={project.name}
+              style={{
+                position: "absolute",
+                right: 0,
+                opacity,
+                transform: `scale(${Math.max(scale, 0)})`,
+              }}
+            >
+              <div
+                style={{
+                  width: 700,
+                  height: 450,
+                  overflow: "hidden",
+                  border: `4px solid ${M7_COLORS.orange}`,
+                }}
+              >
+                <Img
+                  src={staticFile(`projects/m7/images/${project.image}`)}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Progress dots */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 80,
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          gap: 12,
+        }}
+      >
+        {projects.map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: i === currentProject ? 30 : 8,
+              height: 8,
+              backgroundColor: i === currentProject ? M7_COLORS.orange : M7_COLORS.gray,
+              transition: "all 0.3s",
+            }}
+          />
+        ))}
       </div>
     </AbsoluteFill>
   );

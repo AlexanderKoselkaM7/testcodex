@@ -7,148 +7,197 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { M7_COLORS, DotPattern, AnimatedText, WipeReveal } from "./M7Styles";
 
 export const M7Intro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Logo animation
+  // Logo animation - fast snap in
   const logoScale = spring({
     frame,
     fps,
-    config: { damping: 12, stiffness: 80 },
+    config: { damping: 15, stiffness: 200, mass: 0.8 },
   });
 
-  const logoRotate = interpolate(frame, [0, 90], [-10, 0], {
+  const logoOpacity = interpolate(frame, [0, 8], [0, 1], {
     extrapolateRight: "clamp",
   });
 
-  // Tagline animation
-  const taglineOpacity = interpolate(frame, [30, 50], [0, 1], {
+  // Orange accent bar
+  const barWidth = interpolate(frame, [15, 30], [0, 300], {
+    extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
-  const taglineY = interpolate(frame, [30, 50], [30, 0], {
+  // Tagline appears
+  const taglineOpacity = interpolate(frame, [40, 50], [0, 1], {
     extrapolateRight: "clamp",
   });
-
-  // Stars animation
-  const star1Scale = spring({ frame: frame - 20, fps, config: { damping: 10 } });
-  const star2Scale = spring({ frame: frame - 30, fps, config: { damping: 10 } });
-  const star3Scale = spring({ frame: frame - 40, fps, config: { damping: 10 } });
-
-  // Background pulse
-  const pulse = Math.sin(frame * 0.02) * 0.1 + 1;
 
   return (
     <AbsoluteFill
       style={{
-        background: "linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%)",
-        justifyContent: "center",
-        alignItems: "center",
+        backgroundColor: M7_COLORS.black,
+        overflow: "hidden",
       }}
     >
-      {/* Animated gradient background */}
+      {/* Dot pattern - bottom left */}
+      <div style={{ position: "absolute", left: 60, bottom: 80 }}>
+        <DotPattern
+          rows={10}
+          cols={20}
+          dotSize={4}
+          gap={10}
+          color={M7_COLORS.gray}
+          animate={true}
+          direction="diagonal"
+          staggerDelay={0.3}
+        />
+      </div>
+
+      {/* Dot pattern - top right */}
+      <div style={{ position: "absolute", right: 100, top: 100 }}>
+        <DotPattern
+          rows={6}
+          cols={12}
+          dotSize={4}
+          gap={10}
+          color={M7_COLORS.gray}
+          animate={true}
+          direction="right"
+          staggerDelay={0.4}
+        />
+      </div>
+
+      {/* Main content - left aligned */}
       <div
         style={{
           position: "absolute",
-          width: 1000,
-          height: 1000,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255, 107, 107, 0.15) 0%, transparent 60%)",
-          transform: `scale(${pulse})`,
-          filter: "blur(80px)",
-        }}
-      />
-
-      {/* Decorative stars */}
-      <Img
-        src={staticFile("projects/m7/images/star-1.png")}
-        style={{
-          position: "absolute",
-          width: 60,
-          left: "20%",
-          top: "25%",
-          transform: `scale(${Math.max(star1Scale, 0)}) rotate(${frame * 0.5}deg)`,
-          opacity: 0.8,
-        }}
-      />
-      <Img
-        src={staticFile("projects/m7/images/star-2.png")}
-        style={{
-          position: "absolute",
-          width: 40,
-          right: "25%",
-          top: "30%",
-          transform: `scale(${Math.max(star2Scale, 0)}) rotate(${-frame * 0.3}deg)`,
-          opacity: 0.6,
-        }}
-      />
-      <Img
-        src={staticFile("projects/m7/images/star-3.png")}
-        style={{
-          position: "absolute",
-          width: 50,
-          left: "30%",
-          bottom: "30%",
-          transform: `scale(${Math.max(star3Scale, 0)}) rotate(${frame * 0.4}deg)`,
-          opacity: 0.7,
-        }}
-      />
-
-      {/* Main content */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          left: 140,
+          top: "50%",
+          transform: "translateY(-50%)",
           zIndex: 10,
         }}
       >
         {/* M7 Logo */}
-        <Img
-          src={staticFile("projects/m7/images/m7-logo.svg")}
+        <div
           style={{
-            width: 200,
-            transform: `scale(${logoScale}) rotate(${logoRotate}deg)`,
-            filter: "drop-shadow(0 20px 40px rgba(255, 107, 107, 0.3))",
+            opacity: logoOpacity,
+            transform: `scale(${logoScale})`,
+            marginBottom: 40,
+          }}
+        >
+          <Img
+            src={staticFile("projects/m7/images/m7-logo.svg")}
+            style={{
+              width: 140,
+              filter: "brightness(0) invert(1)",
+            }}
+          />
+        </div>
+
+        {/* Orange accent bar */}
+        <div
+          style={{
+            width: barWidth,
+            height: 6,
+            backgroundColor: M7_COLORS.orange,
+            marginBottom: 40,
           }}
         />
 
-        {/* Tagline */}
-        <div
+        {/* Main headline */}
+        <AnimatedText
+          text="WE MAKE PIXELS"
+          fontSize={90}
+          fontWeight={900}
+          color={M7_COLORS.white}
+          delay={20}
+          speed={1.5}
+          style={{ marginBottom: 8 }}
+        />
+        <AnimatedText
+          text="TURN INTO STARS."
+          fontSize={90}
+          fontWeight={900}
+          color={M7_COLORS.white}
+          delay={35}
+          speed={1.5}
+        />
+
+        {/* Subtitle */}
+        <p
           style={{
-            marginTop: 50,
+            fontSize: 24,
+            color: M7_COLORS.lightGray,
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            marginTop: 40,
             opacity: taglineOpacity,
-            transform: `translateY(${taglineY}px)`,
-            textAlign: "center",
+            fontWeight: 400,
+            maxWidth: 500,
+            lineHeight: 1.5,
           }}
         >
-          <h1
-            style={{
-              fontSize: 48,
-              fontWeight: 700,
-              color: "white",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              margin: 0,
-              letterSpacing: 4,
-            }}
-          >
-            BRANDING AGENCY
-          </h1>
-          <p
-            style={{
-              fontSize: 20,
-              color: "rgba(255, 255, 255, 0.6)",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              marginTop: 16,
-              letterSpacing: 2,
-            }}
-          >
-            Design • Strategy • Digital
-          </p>
+          Welcome to the world of top-notch brands and powerful digital solutions.
+        </p>
+
+        {/* CTA Buttons */}
+        <div
+          style={{
+            display: "flex",
+            gap: 20,
+            marginTop: 40,
+            opacity: taglineOpacity,
+          }}
+        >
+          <WipeReveal delay={50} duration={12}>
+            <div
+              style={{
+                padding: "16px 32px",
+                backgroundColor: M7_COLORS.orange,
+                color: M7_COLORS.black,
+                fontSize: 16,
+                fontWeight: 700,
+                fontFamily: "system-ui, -apple-system, sans-serif",
+                letterSpacing: 1,
+              }}
+            >
+              GET IN TOUCH
+            </div>
+          </WipeReveal>
+          <WipeReveal delay={55} duration={12}>
+            <div
+              style={{
+                padding: "16px 32px",
+                backgroundColor: "transparent",
+                color: M7_COLORS.white,
+                fontSize: 16,
+                fontWeight: 700,
+                fontFamily: "system-ui, -apple-system, sans-serif",
+                letterSpacing: 1,
+                border: `2px solid ${M7_COLORS.white}`,
+              }}
+            >
+              SEE OUR WORK
+            </div>
+          </WipeReveal>
         </div>
       </div>
+
+      {/* Orange glow accent */}
+      <div
+        style={{
+          position: "absolute",
+          right: -200,
+          top: "30%",
+          width: 600,
+          height: 600,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${M7_COLORS.orange}15 0%, transparent 60%)`,
+          filter: "blur(80px)",
+        }}
+      />
     </AbsoluteFill>
   );
 };

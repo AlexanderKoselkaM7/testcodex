@@ -7,69 +7,86 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { M7_COLORS, DotPattern, WipeReveal } from "./M7Styles";
 
 const services = [
-  { icon: "favorite.svg", title: "Brand Strategy", color: "#ff6b6b" },
-  { icon: "edit.svg", title: "Visual Identity", color: "#4ecdc4" },
-  { icon: "internet.svg", title: "Web Design", color: "#45b7d1" },
-  { icon: "media.svg", title: "Digital Marketing", color: "#f9ca24" },
+  { icon: "favorite.svg", title: "BRAND STRATEGY", num: "01" },
+  { icon: "edit.svg", title: "VISUAL IDENTITY", num: "02" },
+  { icon: "internet.svg", title: "WEB DESIGN", num: "03" },
+  { icon: "media.svg", title: "DIGITAL MARKETING", num: "04" },
 ];
 
-const ServiceCard: React.FC<{
+const ServiceItem: React.FC<{
   icon: string;
   title: string;
-  color: string;
+  num: string;
   index: number;
-}> = ({ icon, title, color, index }) => {
+}> = ({ icon, title, num, index }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const delay = index * 10;
+  const delay = 15 + index * 12;
 
-  const cardScale = spring({
-    frame: frame - delay,
-    fps,
-    config: { damping: 12, stiffness: 100 },
-  });
-
-  const cardY = interpolate(frame - delay, [0, 25], [50, 0], {
+  const slideX = interpolate(frame - delay, [0, 15], [-100, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
-  const iconBounce = Math.sin((frame - delay) * 0.08) * 5;
+  const opacity = interpolate(frame - delay, [0, 10], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const iconScale = spring({
+    frame: frame - delay - 5,
+    fps,
+    config: { damping: 12, stiffness: 150 },
+  });
 
   return (
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
-        gap: 24,
-        transform: `scale(${Math.max(cardScale, 0)}) translateY(${cardY}px)`,
+        gap: 30,
+        opacity,
+        transform: `translateX(${slideX}px)`,
+        paddingBottom: 30,
+        borderBottom: `1px solid ${M7_COLORS.darkGray}`,
       }}
     >
-      {/* Icon container */}
+      {/* Number */}
+      <span
+        style={{
+          fontSize: 14,
+          color: M7_COLORS.orange,
+          fontFamily: "system-ui, -apple-system, sans-serif",
+          fontWeight: 700,
+          letterSpacing: 2,
+          width: 40,
+        }}
+      >
+        {num}
+      </span>
+
+      {/* Icon */}
       <div
         style={{
-          width: 140,
-          height: 140,
-          borderRadius: 28,
-          background: `linear-gradient(135deg, ${color}20 0%, ${color}08 100%)`,
-          border: `2px solid ${color}40`,
+          width: 60,
+          height: 60,
+          backgroundColor: M7_COLORS.darkGray,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          boxShadow: `0 20px 50px ${color}25`,
+          transform: `scale(${Math.max(iconScale, 0)})`,
         }}
       >
         <Img
           src={staticFile(`projects/m7/icons/${icon}`)}
           style={{
-            width: 60,
-            height: 60,
-            transform: `translateY(${iconBounce}px)`,
-            filter: `brightness(0) saturate(100%) invert(1)`,
+            width: 28,
+            height: 28,
+            filter: "brightness(0) invert(1)",
           }}
         />
       </div>
@@ -77,14 +94,25 @@ const ServiceCard: React.FC<{
       {/* Title */}
       <span
         style={{
-          fontSize: 20,
-          fontWeight: 600,
-          color: "white",
+          fontSize: 28,
+          fontWeight: 700,
+          color: M7_COLORS.white,
           fontFamily: "system-ui, -apple-system, sans-serif",
-          letterSpacing: 1,
+          letterSpacing: 2,
         }}
       >
         {title}
+      </span>
+
+      {/* Arrow */}
+      <span
+        style={{
+          marginLeft: "auto",
+          fontSize: 24,
+          color: M7_COLORS.gray,
+        }}
+      >
+        →
       </span>
     </div>
   );
@@ -93,90 +121,99 @@ const ServiceCard: React.FC<{
 export const M7Services: React.FC = () => {
   const frame = useCurrentFrame();
 
-  const titleOpacity = interpolate(frame, [0, 20], [0, 1], {
+  const titleOpacity = interpolate(frame, [0, 15], [0, 1], {
     extrapolateRight: "clamp",
   });
 
-  const titleY = interpolate(frame, [0, 20], [30, 0], {
+  const titleY = interpolate(frame, [0, 15], [30, 0], {
     extrapolateRight: "clamp",
   });
 
   return (
     <AbsoluteFill
       style={{
-        background: "linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%)",
-        justifyContent: "center",
-        alignItems: "center",
+        backgroundColor: M7_COLORS.black,
         padding: 100,
+        display: "flex",
       }}
     >
-      {/* Background accent */}
-      <div
-        style={{
-          position: "absolute",
-          width: 800,
-          height: 800,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(78, 205, 196, 0.1) 0%, transparent 60%)",
-          filter: "blur(100px)",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-        }}
-      />
+      {/* Dot pattern - right side */}
+      <div style={{ position: "absolute", right: 80, bottom: 100 }}>
+        <DotPattern
+          rows={12}
+          cols={8}
+          dotSize={4}
+          gap={10}
+          color={M7_COLORS.gray}
+          animate={true}
+          direction="up"
+          staggerDelay={0.4}
+        />
+      </div>
 
+      {/* Left side - title */}
       <div
         style={{
+          flex: 1,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          gap: 80,
-          zIndex: 10,
+          justifyContent: "center",
+          opacity: titleOpacity,
+          transform: `translateY(${titleY}px)`,
         }}
       >
-        {/* Section title */}
-        <div
+        <span
           style={{
-            textAlign: "center",
-            opacity: titleOpacity,
-            transform: `translateY(${titleY}px)`,
+            fontSize: 14,
+            color: M7_COLORS.orange,
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            fontWeight: 700,
+            letterSpacing: 3,
+            marginBottom: 20,
           }}
         >
-          <h2
-            style={{
-              fontSize: 56,
-              fontWeight: 700,
-              color: "white",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              margin: 0,
-              letterSpacing: -1,
-            }}
-          >
-            Our Services
-          </h2>
-          <p
-            style={{
-              fontSize: 20,
-              color: "rgba(255, 255, 255, 0.5)",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              marginTop: 16,
-            }}
-          >
-            Elevating brands through creative excellence
-          </p>
-        </div>
+          WHAT WE DO
+        </span>
 
-        {/* Service cards */}
-        <div
+        <h2
           style={{
-            display: "flex",
-            gap: 60,
+            fontSize: 64,
+            fontWeight: 900,
+            color: M7_COLORS.white,
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            margin: 0,
+            lineHeight: 1.1,
           }}
         >
-          {services.map((service, i) => (
-            <ServiceCard key={service.title} {...service} index={i} />
-          ))}
-        </div>
+          OUR
+          <br />
+          SERVICES
+        </h2>
+
+        {/* Orange bar accent */}
+        <div
+          style={{
+            width: 80,
+            height: 6,
+            backgroundColor: M7_COLORS.orange,
+            marginTop: 30,
+          }}
+        />
+      </div>
+
+      {/* Right side - services list */}
+      <div
+        style={{
+          flex: 1.5,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 25,
+        }}
+      >
+        {services.map((service, i) => (
+          <ServiceItem key={service.title} {...service} index={i} />
+        ))}
       </div>
     </AbsoluteFill>
   );
