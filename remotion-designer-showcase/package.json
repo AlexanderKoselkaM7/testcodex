@@ -1,0 +1,28 @@
+{
+  "name": "remotion-designer-showcase",
+  "version": "1.0.0",
+  "description": "A fancy Remotion video showcasing capabilities for graphic designers",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render DesignerShowcase out/video.mp4",
+    "upgrade": "remotion upgrade"
+  },
+  "keywords": [
+    "remotion",
+    "video",
+    "design",
+    "animation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@remotion/bundler": "^4.0.410",
+    "@remotion/cli": "^4.0.410",
+    "@remotion/motion-blur": "^4.0.410",
+    "@types/react": "^19.2.10",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "remotion": "^4.0.410",
+    "typescript": "^5.9.3"
+  }
+}
