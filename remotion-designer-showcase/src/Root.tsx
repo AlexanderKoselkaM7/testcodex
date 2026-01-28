@@ -25,7 +25,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="BuitenstateShowcase"
         component={BuitenstateShowcase}
-        durationInFrames={450}
+        durationInFrames={550}
         fps={60}
         width={1920}
         height={1080}
