@@ -5,175 +5,143 @@ import {
   spring,
   useVideoConfig,
 } from "remotion";
-import { Trail } from "@remotion/motion-blur";
-
-const RotatingRing: React.FC<{ index: number }> = ({ index }) => {
-  const frame = useCurrentFrame();
-  const rotation = interpolate(frame, [0, 75], [0, 360]);
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        width: 200 + index * 200,
-        height: 200 + index * 200,
-        borderRadius: "50%",
-        border: `1px solid rgba(230, 57, 70, ${0.15 - index * 0.015})`,
-        transform: `rotate(${rotation + index * 15}deg)`,
-      }}
-    />
-  );
-};
-
-const RotatingLogo: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const titleScale = spring({
-    frame,
-    fps,
-    config: { damping: 12, stiffness: 80 },
-  });
-
-  const rotation = interpolate(frame, [0, 75], [0, 360]);
-
-  return (
-    <div
-      style={{
-        width: 80,
-        height: 80,
-        background: "linear-gradient(135deg, #e63946 0%, #f4a261 100%)",
-        borderRadius: 16,
-        transform: `scale(${titleScale}) rotate(${rotation * 0.05}deg)`,
-        boxShadow: "0 0 60px rgba(230, 57, 70, 0.6)",
-      }}
-    />
-  );
-};
 
 export const OutroScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const titleScale = spring({
+  // Logo animation
+  const logoScale = spring({
     frame,
     fps,
     config: { damping: 12, stiffness: 80 },
   });
 
-  const subtitleOpacity = interpolate(frame, [15, 35], [0, 1], {
+  const logoRotation = interpolate(frame, [0, 80], [0, 360]);
+
+  // Text animations
+  const titleOpacity = interpolate(frame, [10, 30], [0, 1], {
     extrapolateRight: "clamp",
   });
 
-  const subtitleY = interpolate(frame, [15, 35], [30, 0], {
+  const titleY = interpolate(frame, [10, 30], [40, 0], {
     extrapolateRight: "clamp",
   });
 
-  const ctaOpacity = interpolate(frame, [30, 50], [0, 1], {
+  const subtitleOpacity = interpolate(frame, [25, 45], [0, 1], {
     extrapolateRight: "clamp",
   });
 
   const ctaScale = spring({
-    frame: frame - 30,
+    frame: frame - 35,
     fps,
     config: { damping: 15, stiffness: 100 },
   });
 
-  const fadeOut = interpolate(frame, [60, 75], [1, 0], {
-    extrapolateLeft: "clamp",
+  const ctaOpacity = interpolate(frame, [35, 50], [0, 1], {
     extrapolateRight: "clamp",
   });
+
+  // Particle positions
+  const particles = Array.from({ length: 20 }, (_, i) => ({
+    x: 100 + (i * 97) % 1720,
+    startY: 1200,
+    endY: -100,
+    size: 4 + (i % 3) * 2,
+    color: ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"][i % 5],
+    speed: 0.8 + (i % 4) * 0.1,
+  }));
 
   return (
     <AbsoluteFill
       style={{
-        background: "linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%)",
+        background: "radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d0d 100%)",
         justifyContent: "center",
         alignItems: "center",
-        opacity: fadeOut,
       }}
     >
-      {/* Animated background rings with motion blur */}
-      {[...Array(8)].map((_, i) => (
-        <Trail key={i} lagInFrames={2} trailOpacity={0.4} layers={4}>
-          <RotatingRing index={i} />
-        </Trail>
-      ))}
+      {/* Animated background rings */}
+      {[0, 1, 2, 3].map((i) => {
+        const ringScale = interpolate(frame, [0, 80], [0.8, 1.2]);
+        const ringOpacity = 0.08 - i * 0.015;
 
-      {/* Glowing background orbs */}
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              width: 400 + i * 200,
+              height: 400 + i * 200,
+              borderRadius: "50%",
+              border: `1px solid rgba(99, 102, 241, ${ringOpacity})`,
+              transform: `scale(${ringScale}) rotate(${logoRotation * 0.5 + i * 15}deg)`,
+            }}
+          />
+        );
+      })}
+
+      {/* Center glow */}
       <div
         style={{
           position: "absolute",
-          width: 600,
-          height: 600,
+          width: 500,
+          height: 500,
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(230, 57, 70, 0.2) 0%, transparent 60%)",
+          background: "radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 60%)",
           filter: "blur(60px)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: 400,
-          height: 400,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(42, 157, 143, 0.2) 0%, transparent 60%)",
-          filter: "blur(40px)",
-          transform: "translate(300px, 200px)",
+          transform: `scale(${logoScale})`,
         }}
       />
 
       {/* Main content */}
       <div
         style={{
-          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
           zIndex: 10,
         }}
       >
-        {/* Logo with motion blur */}
+        {/* Logo */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "center",
-            marginBottom: 40,
+            width: 80,
+            height: 80,
+            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)",
+            borderRadius: 20,
+            transform: `scale(${logoScale}) rotate(${logoRotation * 0.1}deg)`,
+            boxShadow: "0 20px 60px rgba(99, 102, 241, 0.5)",
+            marginBottom: 50,
           }}
-        >
-          <Trail lagInFrames={3} trailOpacity={0.5} layers={5}>
-            <RotatingLogo />
-          </Trail>
-        </div>
+        />
 
         {/* Title */}
         <h1
           style={{
-            fontSize: 96,
-            fontWeight: 900,
+            fontSize: 72,
+            fontWeight: 800,
             color: "white",
-            fontFamily: "system-ui, sans-serif",
+            fontFamily: "system-ui, -apple-system, sans-serif",
             margin: 0,
-            letterSpacing: -3,
-            transform: `scale(${titleScale})`,
-            textShadow: "0 0 60px rgba(230, 57, 70, 0.4)",
+            letterSpacing: -2,
+            opacity: titleOpacity,
+            transform: `translateY(${titleY}px)`,
           }}
         >
-          START CREATING
+          Start Creating
         </h1>
 
         {/* Subtitle */}
         <p
           style={{
-            fontSize: 28,
-            color: "rgba(255, 255, 255, 0.7)",
-            fontFamily: "system-ui, sans-serif",
-            margin: "24px 0 0 0",
-            fontWeight: 400,
+            fontSize: 22,
+            color: "rgba(255, 255, 255, 0.6)",
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            margin: "20px 0 0 0",
             opacity: subtitleOpacity,
-            transform: `translateY(${subtitleY}px)`,
           }}
         >
-          Programmatic video creation for designers
+          Build stunning videos with React
         </p>
 
         {/* CTA Button */}
@@ -181,21 +149,20 @@ export const OutroScene: React.FC = () => {
           style={{
             marginTop: 50,
             opacity: ctaOpacity,
-            transform: `scale(${ctaScale})`,
+            transform: `scale(${Math.max(ctaScale, 0)})`,
           }}
         >
           <div
             style={{
-              display: "inline-block",
-              padding: "20px 50px",
-              background: "linear-gradient(135deg, #e63946 0%, #f4a261 100%)",
-              borderRadius: 50,
-              fontSize: 20,
+              padding: "18px 48px",
+              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+              borderRadius: 40,
+              fontSize: 18,
               fontWeight: 700,
               color: "white",
-              fontFamily: "system-ui, sans-serif",
-              letterSpacing: 2,
-              boxShadow: "0 10px 40px rgba(230, 57, 70, 0.4)",
+              fontFamily: "system-ui, -apple-system, sans-serif",
+              letterSpacing: 1,
+              boxShadow: "0 15px 40px rgba(99, 102, 241, 0.4)",
             }}
           >
             remotion.dev
@@ -203,35 +170,33 @@ export const OutroScene: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating particles */}
-      {[...Array(30)].map((_, i) => {
-        const x = 100 + (i * 60) % 1720;
-        const startY = 1100;
-        const endY = -100;
+      {/* Rising particles */}
+      {particles.map((particle, i) => {
         const particleY = interpolate(
           frame,
-          [0, 75],
-          [startY - (i % 5) * 100, endY + (i % 3) * 50]
+          [0, 80],
+          [particle.startY, particle.endY],
         );
         const particleOpacity = interpolate(
           frame,
-          [0, 10, 65, 75],
-          [0, 0.8, 0.8, 0]
+          [0, 15, 65, 80],
+          [0, 0.8, 0.8, 0],
         );
-        const colors = ["#e63946", "#f4a261", "#e9c46a", "#2a9d8f", "#264653"];
+        const wobble = Math.sin(frame * 0.1 + i) * 15;
 
         return (
           <div
             key={i}
             style={{
               position: "absolute",
-              left: x + Math.sin(frame * 0.05 + i) * 20,
-              top: particleY,
-              width: 4 + (i % 4) * 2,
-              height: 4 + (i % 4) * 2,
+              left: particle.x + wobble,
+              top: particleY * particle.speed,
+              width: particle.size,
+              height: particle.size,
               borderRadius: "50%",
-              backgroundColor: colors[i % 5],
+              backgroundColor: particle.color,
               opacity: particleOpacity,
+              boxShadow: `0 0 10px ${particle.color}60`,
             }}
           />
         );

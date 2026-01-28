@@ -1,38 +1,66 @@
 import {
   AbsoluteFill,
-  interpolate,
   Sequence,
   useCurrentFrame,
-  spring,
-  useVideoConfig,
+  interpolate,
 } from "remotion";
 import { IntroScene } from "./scenes/IntroScene";
-import { TypographyScene } from "./scenes/TypographyScene";
-import { ShapesScene } from "./scenes/ShapesScene";
-import { ColorsScene } from "./scenes/ColorsScene";
-import { MotionScene } from "./scenes/MotionScene";
+import { FeaturesScene } from "./scenes/FeaturesScene";
+import { AnimationScene } from "./scenes/AnimationScene";
 import { OutroScene } from "./scenes/OutroScene";
 
 export const DesignerShowcase: React.FC = () => {
+  const frame = useCurrentFrame();
+
+  // Smooth cross-fade transitions
+  const scene1Opacity = interpolate(frame, [0, 60, 70], [1, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const scene2Opacity = interpolate(frame, [60, 70, 140, 150], [0, 1, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const scene3Opacity = interpolate(frame, [140, 150, 220, 230], [0, 1, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const scene4Opacity = interpolate(frame, [220, 230, 300], [0, 1, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0a0a0a" }}>
-      <Sequence from={0} durationInFrames={75}>
-        <IntroScene />
+    <AbsoluteFill style={{ backgroundColor: "#0d0d0d" }}>
+      {/* Scene 1: Intro */}
+      <Sequence from={0} durationInFrames={80}>
+        <AbsoluteFill style={{ opacity: scene1Opacity }}>
+          <IntroScene />
+        </AbsoluteFill>
       </Sequence>
-      <Sequence from={75} durationInFrames={75}>
-        <TypographyScene />
+
+      {/* Scene 2: Features */}
+      <Sequence from={60} durationInFrames={100}>
+        <AbsoluteFill style={{ opacity: scene2Opacity }}>
+          <FeaturesScene />
+        </AbsoluteFill>
       </Sequence>
-      <Sequence from={150} durationInFrames={75}>
-        <ShapesScene />
+
+      {/* Scene 3: Animation Demo */}
+      <Sequence from={140} durationInFrames={100}>
+        <AbsoluteFill style={{ opacity: scene3Opacity }}>
+          <AnimationScene />
+        </AbsoluteFill>
       </Sequence>
-      <Sequence from={225} durationInFrames={75}>
-        <ColorsScene />
-      </Sequence>
-      <Sequence from={300} durationInFrames={75}>
-        <MotionScene />
-      </Sequence>
-      <Sequence from={375} durationInFrames={75}>
-        <OutroScene />
+
+      {/* Scene 4: Outro */}
+      <Sequence from={220} durationInFrames={80}>
+        <AbsoluteFill style={{ opacity: scene4Opacity }}>
+          <OutroScene />
+        </AbsoluteFill>
       </Sequence>
     </AbsoluteFill>
   );

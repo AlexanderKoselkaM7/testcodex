@@ -5,151 +5,143 @@ import {
   spring,
   useVideoConfig,
 } from "remotion";
-import { Trail } from "@remotion/motion-blur";
-
-const RotatingLogo: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const logoScale = spring({
-    frame,
-    fps,
-    config: { damping: 12, stiffness: 100 },
-  });
-
-  const rotation = interpolate(frame, [0, 75], [0, 360]);
-  const glowIntensity = interpolate(frame, [0, 30], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <div
-      style={{
-        width: 120,
-        height: 120,
-        background: "linear-gradient(135deg, #e63946 0%, #f4a261 100%)",
-        borderRadius: 24,
-        transform: `scale(${logoScale}) rotate(${rotation * 0.1}deg)`,
-        boxShadow: `0 0 60px rgba(230, 57, 70, ${glowIntensity * 0.8})`,
-      }}
-    />
-  );
-};
-
-const RotatingRing: React.FC<{ index: number }> = ({ index }) => {
-  const frame = useCurrentFrame();
-  const rotation = interpolate(frame, [0, 75], [0, 360]);
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        width: 400 + index * 150,
-        height: 400 + index * 150,
-        borderRadius: "50%",
-        border: `2px solid rgba(230, 57, 70, ${0.1 - index * 0.015})`,
-        transform: `rotate(${rotation + index * 20}deg)`,
-      }}
-    />
-  );
-};
 
 export const IntroScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const logoScale = spring({
+  // Logo animation
+  const logoProgress = spring({
     frame,
     fps,
-    config: { damping: 12, stiffness: 100 },
+    config: { damping: 15, stiffness: 80, mass: 1 },
   });
 
-  const titleOpacity = interpolate(frame, [20, 40], [0, 1], {
+  const logoRotation = interpolate(frame, [0, 80], [0, 45]);
+
+  // Title animation
+  const titleY = interpolate(frame, [15, 40], [60, 0], {
+    extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
-  const titleY = interpolate(frame, [20, 45], [50, 0], {
+  const titleOpacity = interpolate(frame, [15, 35], [0, 1], {
     extrapolateRight: "clamp",
   });
 
-  const subtitleOpacity = interpolate(frame, [35, 55], [0, 1], {
+  // Subtitle animation
+  const subtitleOpacity = interpolate(frame, [30, 50], [0, 1], {
     extrapolateRight: "clamp",
   });
 
-  const glowIntensity = interpolate(frame, [0, 30], [0, 1], {
-    extrapolateRight: "clamp",
-  });
+  // Background pulse
+  const pulse = Math.sin(frame * 0.03) * 0.1 + 0.9;
 
   return (
     <AbsoluteFill
       style={{
-        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+        background: "radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d0d 100%)",
         justifyContent: "center",
         alignItems: "center",
-        overflow: "hidden",
       }}
     >
-      {/* Animated background circles with motion blur */}
-      {[...Array(5)].map((_, i) => (
-        <Trail key={i} lagInFrames={2} trailOpacity={0.4} layers={4}>
-          <RotatingRing index={i} />
-        </Trail>
-      ))}
-
-      {/* Glowing orb */}
+      {/* Animated background gradient */}
       <div
         style={{
           position: "absolute",
-          width: 300,
-          height: 300,
+          width: 800,
+          height: 800,
           borderRadius: "50%",
-          background: `radial-gradient(circle, rgba(230, 57, 70, ${glowIntensity * 0.6}) 0%, transparent 70%)`,
-          filter: `blur(40px)`,
-          transform: `scale(${logoScale})`,
+          background: "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)",
+          transform: `scale(${pulse})`,
+          filter: "blur(60px)",
         }}
       />
 
-      {/* Logo shape with motion blur */}
-      <div style={{ marginBottom: 40 }}>
-        <Trail lagInFrames={3} trailOpacity={0.5} layers={5}>
-          <RotatingLogo />
-        </Trail>
-      </div>
+      {/* Floating accent circles */}
+      {[0, 1, 2].map((i) => {
+        const delay = i * 10;
+        const y = interpolate(frame - delay, [0, 80], [20, -20]);
+        const opacity = interpolate(frame - delay, [0, 20], [0, 0.6], {
+          extrapolateRight: "clamp",
+        });
+        const colors = ["#6366f1", "#8b5cf6", "#ec4899"];
+        const positions = [
+          { left: "20%", top: "30%" },
+          { right: "25%", top: "25%" },
+          { left: "15%", bottom: "35%" },
+        ];
 
-      {/* Title */}
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              ...positions[i],
+              width: 100 + i * 30,
+              height: 100 + i * 30,
+              borderRadius: "50%",
+              background: `radial-gradient(circle, ${colors[i]}40 0%, transparent 70%)`,
+              transform: `translateY(${y}px)`,
+              opacity,
+              filter: "blur(30px)",
+            }}
+          />
+        );
+      })}
+
+      {/* Main content */}
       <div
         style={{
-          opacity: titleOpacity,
-          transform: `translateY(${titleY}px)`,
-          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          zIndex: 10,
         }}
       >
+        {/* Logo */}
+        <div
+          style={{
+            width: 100,
+            height: 100,
+            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)",
+            borderRadius: 24,
+            transform: `scale(${logoProgress}) rotate(${logoRotation}deg)`,
+            boxShadow: "0 20px 60px rgba(99, 102, 241, 0.4)",
+            marginBottom: 50,
+          }}
+        />
+
+        {/* Title */}
         <h1
           style={{
-            fontSize: 72,
+            fontSize: 80,
             fontWeight: 800,
             color: "white",
-            fontFamily: "system-ui, sans-serif",
+            fontFamily: "system-ui, -apple-system, sans-serif",
             margin: 0,
             letterSpacing: -2,
-            textShadow: "0 0 40px rgba(230, 57, 70, 0.5)",
+            opacity: titleOpacity,
+            transform: `translateY(${titleY}px)`,
           }}
         >
           REMOTION
         </h1>
-        <div
+
+        {/* Subtitle */}
+        <p
           style={{
-            fontSize: 28,
-            color: "#f4a261",
-            fontWeight: 500,
-            marginTop: 8,
-            fontFamily: "system-ui, sans-serif",
-            letterSpacing: 8,
+            fontSize: 24,
+            color: "rgba(255, 255, 255, 0.6)",
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            margin: "16px 0 0 0",
+            letterSpacing: 6,
             opacity: subtitleOpacity,
+            fontWeight: 500,
           }}
         >
-          FOR DESIGNERS
-        </div>
+          VIDEO FOR DESIGNERS
+        </p>
       </div>
     </AbsoluteFill>
   );
