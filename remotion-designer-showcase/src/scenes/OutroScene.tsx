@@ -5,6 +5,51 @@ import {
   spring,
   useVideoConfig,
 } from "remotion";
+import { Trail } from "@remotion/motion-blur";
+
+const RotatingRing: React.FC<{ index: number }> = ({ index }) => {
+  const frame = useCurrentFrame();
+  const rotation = interpolate(frame, [0, 75], [0, 360]);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        width: 200 + index * 200,
+        height: 200 + index * 200,
+        borderRadius: "50%",
+        border: `1px solid rgba(230, 57, 70, ${0.15 - index * 0.015})`,
+        transform: `rotate(${rotation + index * 15}deg)`,
+      }}
+    />
+  );
+};
+
+const RotatingLogo: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const titleScale = spring({
+    frame,
+    fps,
+    config: { damping: 12, stiffness: 80 },
+  });
+
+  const rotation = interpolate(frame, [0, 75], [0, 360]);
+
+  return (
+    <div
+      style={{
+        width: 80,
+        height: 80,
+        background: "linear-gradient(135deg, #e63946 0%, #f4a261 100%)",
+        borderRadius: 16,
+        transform: `scale(${titleScale}) rotate(${rotation * 0.05}deg)`,
+        boxShadow: "0 0 60px rgba(230, 57, 70, 0.6)",
+      }}
+    />
+  );
+};
 
 export const OutroScene: React.FC = () => {
   const frame = useCurrentFrame();
@@ -39,8 +84,6 @@ export const OutroScene: React.FC = () => {
     extrapolateRight: "clamp",
   });
 
-  const rotation = interpolate(frame, [0, 75], [0, 360]);
-
   return (
     <AbsoluteFill
       style={{
@@ -50,19 +93,11 @@ export const OutroScene: React.FC = () => {
         opacity: fadeOut,
       }}
     >
-      {/* Animated background rings */}
+      {/* Animated background rings with motion blur */}
       {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            width: 200 + i * 200,
-            height: 200 + i * 200,
-            borderRadius: "50%",
-            border: `1px solid rgba(230, 57, 70, ${0.15 - i * 0.015})`,
-            transform: `rotate(${rotation + i * 15}deg)`,
-          }}
-        />
+        <Trail key={i} lagInFrames={2} trailOpacity={0.4} layers={4}>
+          <RotatingRing index={i} />
+        </Trail>
       ))}
 
       {/* Glowing background orbs */}
@@ -97,7 +132,7 @@ export const OutroScene: React.FC = () => {
           zIndex: 10,
         }}
       >
-        {/* Logo */}
+        {/* Logo with motion blur */}
         <div
           style={{
             display: "flex",
@@ -105,16 +140,9 @@ export const OutroScene: React.FC = () => {
             marginBottom: 40,
           }}
         >
-          <div
-            style={{
-              width: 80,
-              height: 80,
-              background: "linear-gradient(135deg, #e63946 0%, #f4a261 100%)",
-              borderRadius: 16,
-              transform: `scale(${titleScale}) rotate(${rotation * 0.05}deg)`,
-              boxShadow: "0 0 60px rgba(230, 57, 70, 0.6)",
-            }}
-          />
+          <Trail lagInFrames={3} trailOpacity={0.5} layers={5}>
+            <RotatingLogo />
+          </Trail>
         </div>
 
         {/* Title */}
