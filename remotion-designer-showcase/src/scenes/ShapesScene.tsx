@@ -5,10 +5,63 @@ import {
   spring,
   useVideoConfig,
 } from "remotion";
+import { Trail } from "@remotion/motion-blur";
+
+const Shape: React.FC<{
+  type: string;
+  color: string;
+  delay: number;
+  index: number;
+}> = ({ type, color, delay, index }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const scale = spring({
+    frame: frame - delay,
+    fps,
+    config: { damping: 12, stiffness: 100 },
+  });
+
+  const rotation = interpolate(frame, [0, 75], [0, 180 + index * 45]);
+  const float = Math.sin((frame + index * 10) * 0.1) * 10;
+
+  let shapeStyle: React.CSSProperties = {
+    width: 150,
+    height: 150,
+    backgroundColor: color,
+    transform: `scale(${scale}) rotate(${rotation}deg) translateY(${float}px)`,
+    boxShadow: `0 0 60px ${color}60`,
+  };
+
+  if (type === "circle") {
+    shapeStyle.borderRadius = "50%";
+  } else if (type === "square") {
+    shapeStyle.borderRadius = 20;
+  } else if (type === "triangle") {
+    shapeStyle = {
+      ...shapeStyle,
+      width: 0,
+      height: 0,
+      backgroundColor: "transparent",
+      borderLeft: "75px solid transparent",
+      borderRight: "75px solid transparent",
+      borderBottom: `150px solid ${color}`,
+      boxShadow: "none",
+      filter: `drop-shadow(0 0 30px ${color}60)`,
+    };
+  } else if (type === "hexagon") {
+    shapeStyle = {
+      ...shapeStyle,
+      clipPath:
+        "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+    };
+  }
+
+  return <div style={shapeStyle} />;
+};
 
 export const ShapesScene: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
 
   const labelOpacity = interpolate(frame, [0, 15], [0, 1], {
     extrapolateRight: "clamp",
@@ -51,7 +104,7 @@ export const ShapesScene: React.FC = () => {
         </span>
       </div>
 
-      {/* Grid of shapes */}
+      {/* Grid of shapes with motion blur */}
       <div
         style={{
           display: "flex",
@@ -59,50 +112,11 @@ export const ShapesScene: React.FC = () => {
           alignItems: "center",
         }}
       >
-        {shapes.map(({ type, color, delay }, i) => {
-          const scale = spring({
-            frame: frame - delay,
-            fps,
-            config: { damping: 12, stiffness: 100 },
-          });
-
-          const rotation = interpolate(frame, [0, 75], [0, 180 + i * 45]);
-          const float = Math.sin((frame + i * 10) * 0.1) * 10;
-
-          let shapeStyle: React.CSSProperties = {
-            width: 150,
-            height: 150,
-            backgroundColor: color,
-            transform: `scale(${scale}) rotate(${rotation}deg) translateY(${float}px)`,
-            boxShadow: `0 0 60px ${color}60`,
-          };
-
-          if (type === "circle") {
-            shapeStyle.borderRadius = "50%";
-          } else if (type === "square") {
-            shapeStyle.borderRadius = 20;
-          } else if (type === "triangle") {
-            shapeStyle = {
-              ...shapeStyle,
-              width: 0,
-              height: 0,
-              backgroundColor: "transparent",
-              borderLeft: "75px solid transparent",
-              borderRight: "75px solid transparent",
-              borderBottom: `150px solid ${color}`,
-              boxShadow: "none",
-              filter: `drop-shadow(0 0 30px ${color}60)`,
-            };
-          } else if (type === "hexagon") {
-            shapeStyle = {
-              ...shapeStyle,
-              clipPath:
-                "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-            };
-          }
-
-          return <div key={type} style={shapeStyle} />;
-        })}
+        {shapes.map(({ type, color, delay }, i) => (
+          <Trail key={type} lagInFrames={3} trailOpacity={0.6} layers={5}>
+            <Shape type={type} color={color} delay={delay} index={i} />
+          </Trail>
+        ))}
       </div>
 
       {/* Floating particles */}

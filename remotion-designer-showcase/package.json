@@ -7,12 +7,18 @@
     "build": "remotion render DesignerShowcase out/video.mp4",
     "upgrade": "remotion upgrade"
   },
-  "keywords": ["remotion", "video", "design", "animation"],
+  "keywords": [
+    "remotion",
+    "video",
+    "design",
+    "animation"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@remotion/bundler": "^4.0.410",
     "@remotion/cli": "^4.0.410",
+    "@remotion/motion-blur": "^4.0.410",
     "@types/react": "^19.2.10",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

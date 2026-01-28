@@ -6,10 +6,53 @@ import {
   useVideoConfig,
   Easing,
 } from "remotion";
+import { Trail } from "@remotion/motion-blur";
+
+const MovingBall: React.FC<{
+  name: string;
+  color: string;
+  easingFn: ((t: number) => number) | null;
+}> = ({ name, color, easingFn }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const cycleFrame = frame % 60;
+  const progress = cycleFrame / 60;
+
+  let ballX: number;
+  if (name === "Spring") {
+    const springValue = spring({
+      frame: cycleFrame,
+      fps,
+      config: { damping: 10, stiffness: 100 },
+      durationInFrames: 60,
+    });
+    ballX = springValue * 1400;
+  } else if (easingFn) {
+    ballX = easingFn(progress) * 1400;
+  } else {
+    ballX = progress * 1400;
+  }
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: 30 + ballX,
+        width: 40,
+        height: 40,
+        borderRadius: "50%",
+        backgroundColor: color,
+        transform: "translate(-50%, -50%)",
+        boxShadow: `0 0 30px ${color}80`,
+      }}
+    />
+  );
+};
 
 export const MotionScene: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
 
   const labelOpacity = interpolate(frame, [0, 15], [0, 1], {
     extrapolateRight: "clamp",
@@ -24,8 +67,7 @@ export const MotionScene: React.FC = () => {
     { name: "Bounce", fn: Easing.bounce },
   ];
 
-  const cycleFrame = frame % 60;
-  const progress = cycleFrame / 60;
+  const colors = ["#e63946", "#f4a261", "#e9c46a", "#2a9d8f", "#264653"];
 
   return (
     <AbsoluteFill
@@ -81,23 +123,6 @@ export const MotionScene: React.FC = () => {
             extrapolateRight: "clamp",
           });
 
-          let ballX: number;
-          if (name === "Spring") {
-            const springValue = spring({
-              frame: cycleFrame,
-              fps,
-              config: { damping: 10, stiffness: 100 },
-              durationInFrames: 60,
-            });
-            ballX = springValue * 1400;
-          } else if (fn) {
-            ballX = fn(progress) * 1400;
-          } else {
-            ballX = progress * 1400;
-          }
-
-          const colors = ["#e63946", "#f4a261", "#e9c46a", "#2a9d8f", "#264653"];
-
           return (
             <div
               key={name}
@@ -141,20 +166,10 @@ export const MotionScene: React.FC = () => {
                     transform: "translateY(-50%)",
                   }}
                 />
-                {/* Ball */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: 30 + ballX,
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    backgroundColor: colors[i],
-                    transform: "translate(-50%, -50%)",
-                    boxShadow: `0 0 30px ${colors[i]}80`,
-                  }}
-                />
+                {/* Ball with motion blur */}
+                <Trail lagInFrames={4} trailOpacity={0.5} layers={6}>
+                  <MovingBall name={name} color={colors[i]} easingFn={fn} />
+                </Trail>
               </div>
             </div>
           );

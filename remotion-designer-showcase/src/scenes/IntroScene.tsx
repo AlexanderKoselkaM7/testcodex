@@ -5,6 +5,54 @@ import {
   spring,
   useVideoConfig,
 } from "remotion";
+import { Trail } from "@remotion/motion-blur";
+
+const RotatingLogo: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const logoScale = spring({
+    frame,
+    fps,
+    config: { damping: 12, stiffness: 100 },
+  });
+
+  const rotation = interpolate(frame, [0, 75], [0, 360]);
+  const glowIntensity = interpolate(frame, [0, 30], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+
+  return (
+    <div
+      style={{
+        width: 120,
+        height: 120,
+        background: "linear-gradient(135deg, #e63946 0%, #f4a261 100%)",
+        borderRadius: 24,
+        transform: `scale(${logoScale}) rotate(${rotation * 0.1}deg)`,
+        boxShadow: `0 0 60px rgba(230, 57, 70, ${glowIntensity * 0.8})`,
+      }}
+    />
+  );
+};
+
+const RotatingRing: React.FC<{ index: number }> = ({ index }) => {
+  const frame = useCurrentFrame();
+  const rotation = interpolate(frame, [0, 75], [0, 360]);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        width: 400 + index * 150,
+        height: 400 + index * 150,
+        borderRadius: "50%",
+        border: `2px solid rgba(230, 57, 70, ${0.1 - index * 0.015})`,
+        transform: `rotate(${rotation + index * 20}deg)`,
+      }}
+    />
+  );
+};
 
 export const IntroScene: React.FC = () => {
   const frame = useCurrentFrame();
@@ -32,8 +80,6 @@ export const IntroScene: React.FC = () => {
     extrapolateRight: "clamp",
   });
 
-  const rotation = interpolate(frame, [0, 75], [0, 360]);
-
   return (
     <AbsoluteFill
       style={{
@@ -43,19 +89,11 @@ export const IntroScene: React.FC = () => {
         overflow: "hidden",
       }}
     >
-      {/* Animated background circles */}
+      {/* Animated background circles with motion blur */}
       {[...Array(5)].map((_, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            width: 400 + i * 150,
-            height: 400 + i * 150,
-            borderRadius: "50%",
-            border: `2px solid rgba(230, 57, 70, ${0.1 - i * 0.015})`,
-            transform: `rotate(${rotation + i * 20}deg)`,
-          }}
-        />
+        <Trail key={i} lagInFrames={2} trailOpacity={0.4} layers={4}>
+          <RotatingRing index={i} />
+        </Trail>
       ))}
 
       {/* Glowing orb */}
@@ -71,18 +109,12 @@ export const IntroScene: React.FC = () => {
         }}
       />
 
-      {/* Logo shape */}
-      <div
-        style={{
-          width: 120,
-          height: 120,
-          background: "linear-gradient(135deg, #e63946 0%, #f4a261 100%)",
-          borderRadius: 24,
-          transform: `scale(${logoScale}) rotate(${rotation * 0.1}deg)`,
-          boxShadow: `0 0 60px rgba(230, 57, 70, ${glowIntensity * 0.8})`,
-          marginBottom: 40,
-        }}
-      />
+      {/* Logo shape with motion blur */}
+      <div style={{ marginBottom: 40 }}>
+        <Trail lagInFrames={3} trailOpacity={0.5} layers={5}>
+          <RotatingLogo />
+        </Trail>
+      </div>
 
       {/* Title */}
       <div
